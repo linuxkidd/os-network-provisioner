@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu>
+    <Interfaces>
+        <NetworkProvisioner visible="name" title="Network Provisioner" url="/ui/networkprovisioner" order="90"/>
+    </Interfaces>
+</menu>

@@ -1,0 +1,3 @@
+This plugin provides a zero-touch orchestration interface to automatically
+provision VLANs, assign logical interfaces, add them to specific firewall 
+groups, and generate Kea DHCP scopes in a single atomic transaction.

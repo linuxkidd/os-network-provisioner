@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<acl>
+    <page-interfaces-networkprovisioner>
+        <name>Interfaces: Network Provisioner</name>
+        <description>Allow access to the Network Provisioner interface.</description>
+        <patterns>
+            <pattern>OPNsense/NetworkProvisioner/*</pattern>
+        </patterns>
+    </page-interfaces-networkprovisioner>
+</acl>
