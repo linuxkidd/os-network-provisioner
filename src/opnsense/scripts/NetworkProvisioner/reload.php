@@ -2,7 +2,9 @@
 <?php
 // This runs isolated via configd. Safe to use legacy includes.
 require_once("config.inc");
+require_once("util.inc");
 require_once("interfaces.inc");
+require_once("filter.inc");
 
 try {
     interfaces_vlan_configure();
