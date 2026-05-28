@@ -52,6 +52,7 @@ class ProvisionController extends ApiControllerBase
         require_once("config.inc");
         require_once("interfaces.inc");
         require_once("util.inc");
+	require_once("auth.inc");
 
 	global $config;
 	$phalcon_app_config = $config;
@@ -188,7 +189,11 @@ class ProvisionController extends ApiControllerBase
             $log[] = "Added Kea DHCP IPv4 subnet.";
 
             // 5. Write to disk and apply
-            write_config("Automated Provisioning: Deployed $description on VLAN $vlan_id");
+            if (!isset($_SESSION['Username'])) {
+                $_SESSION['Username'] = $this->getUserName() ?: 'API_NetworkProvisioner';
+            }
+
+	    write_config("Automated Provisioning: Deployed $description on VLAN $vlan_id");
             $log[] = "Configuration saved to config.xml.";
 
             $config = $phalcon_app_config;
