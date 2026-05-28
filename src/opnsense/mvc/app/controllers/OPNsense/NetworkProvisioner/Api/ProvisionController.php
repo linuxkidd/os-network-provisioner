@@ -26,8 +26,8 @@ class ProvisionController extends ApiControllerBase
         $description = preg_replace('/[^a-zA-Z0-9 _-]/', '', $data['description'] ?? '');
         $network     = $data['network'] ?? '';
         $mask        = preg_replace('/[^0-9]/', '', $data['mask'] ?? '');
-	$parent_if   = preg_replace('/[^a-zA-Z0-9]/', '', $data['parent_if'] ?? 'vtnet0');
-	$fw_group    = preg_replace('/[^a-zA-Z0-9_-]/', '', $data['fw_group'] ?? '');
+        $parent_if   = preg_replace('/[^a-zA-Z0-9]/', '', $data['parent_if'] ?? 'vtnet0');
+        $fw_group    = preg_replace('/[^a-zA-Z0-9_-]/', '', $data['fw_group'] ?? '');
 
         if (empty($vlan_id) || empty($network) || empty($mask) || empty($description)) {
             return array("status" => "failed", "message" => "Missing required fields.");
@@ -57,7 +57,7 @@ class ProvisionController extends ApiControllerBase
                     $vlan_exists = true; break; 
                 }
             }
-	    if (!$vlan_exists) {
+            if (!$vlan_exists) {
                 $uuid = $this->genUUID();
                 $new_vlan = $configXML->vlans->addChild('vlan');
                 $new_vlan->addAttribute('uuid', $uuid);
@@ -76,7 +76,7 @@ class ProvisionController extends ApiControllerBase
 
             $new_if = $configXML->interfaces->addChild($logical_if_name);
             $new_if->addChild('if', $vlan_iface_name);
-            $new_if->addChild('descr', $description);
+            $new_if->addChild('descr', str_replace(' ','',$description));
             $new_if->addChild('enable', '1');
             $new_if->addChild('ipaddr', $interface_ip);
             $new_if->addChild('subnet', $mask);
@@ -104,11 +104,11 @@ class ProvisionController extends ApiControllerBase
                 if (!isset($configXML->OPNsense->Kea)) $configXML->OPNsense->addChild('Kea');
                 if (!isset($configXML->OPNsense->Kea->dhcp4)) $configXML->OPNsense->Kea->addChild('dhcp4');
                 $configXML->OPNsense->Kea->dhcp4->addChild('subnets');
-	    }
+            }
 
-	    $kea_ifaces = $configXML->OPNsense->Kea->dhcp4->General->interfaces;
-	    if(strpos($kea_ifaces, $logical_if_name) === false) {
-                $configXML->OPNsense->Kea->dhcp4->General->interfaces = trim($kea_ifaces . "," . $logical_if_name);
+            $kea_ifaces = $configXML->OPNsense->Kea->dhcp4->general->interfaces;
+            if(strpos($kea_ifaces, $logical_if_name) === false) {
+                $configXML->OPNsense->Kea->dhcp4->general->interfaces = trim($kea_ifaces . "," . $logical_if_name);
             }
 
             $uuid = $this->genUUID();
