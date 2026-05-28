@@ -22,6 +22,13 @@ class ProvisionController extends ApiControllerBase
         ];
     }
 
+    private function genUUID() {
+        $data = random_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // Set version to 0100
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // Set bits 6-7 to 10
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
     public function runAction()
     {
         if (!$this->request->isPost()) {
@@ -115,7 +122,8 @@ class ProvisionController extends ApiControllerBase
         try {
             // 1. Create VLAN
             if (!isset($config['vlans'])) { $config['vlans'] = ['vlan' => []]; }
-            $vlan_uuid = \OPNsense\Core\Config::getInstance()->generateGUID();
+
+            $vlan_uuid = $this->genUUID();
             $config['vlans']['vlan'][] = [
                 '@attributes' => [ 'uuid' => $vlan_uuid ],
                 'if' => $parent_if,
@@ -169,8 +177,8 @@ class ProvisionController extends ApiControllerBase
                 $config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'] = [];
             }
 
-            // Generate a random UUID for the new Kea Subnet entry
-            $uuid = \OPNsense\Core\Config::getInstance()->generateGUID();
+	    // Generate a random UUID for the new Kea Subnet entry
+	    $uuid = $this->genUUID();
             $config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'][] = [
                 '@attributes' => [ 'uuid' => $uuid ],
                 'subnet' => "$network/$mask",
