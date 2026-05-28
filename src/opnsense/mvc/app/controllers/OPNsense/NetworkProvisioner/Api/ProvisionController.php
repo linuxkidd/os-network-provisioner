@@ -34,11 +34,12 @@ class ProvisionController extends ApiControllerBase
         $network     = $data['network'] ?? '';
         $mask        = $data['mask'] ?? '';
         $parent_if   = $data['parent_if'] ?? 'vtnet0';
+        $firewall_group = $data['firewall_group'] ?? '';
 
         if (empty($vlan_id) || empty($network) || empty($mask) || empty($description)) {
             return array("status" => "failed", "message" => "Missing required fields.");
-	}
-	$descr_nospace = str_replace(' ','',$description);
+        }
+        $descr_nospace = str_replace(' ','',$description);
 
         $log = [];
         require_once("config.inc");
@@ -110,17 +111,16 @@ class ProvisionController extends ApiControllerBase
         // END VALIDATION - PROCEED WITH CONFIGURATION
         // ====================================================================
 
-	require_once("interfaces.inc");
+        require_once("interfaces.inc");
         require_once("util.inc");
 
         $vlan_iface_name = "{$data['parent_if']}_vlan{$vlan_id}";
-        $fw_group_name = "Pier_Networks";
 
         try {
             // 1. Create VLAN
             if (!isset($config['vlans'])) { $config['vlans'] = ['vlan' => []]; }
             $vlan_uuid = \OPNsense\Core\Config::getInstance()->generateGUID();
-	    $config['vlans']['vlan'][] = [
+            $config['vlans']['vlan'][] = [
                 '@attributes' => [ 'uuid' => $vlan_uuid ],
                 'if' => $parent_if,
                 'tag' => $vlan_id,
@@ -151,16 +151,18 @@ class ProvisionController extends ApiControllerBase
             $log[] = "Assigned logical interface $logical_if_name ({$net_details['interface_ip']}/{$mask}).";
 
             // 3. Add to Firewall Group
-            if (isset($config['ifgroups']['ifgroupentry'])) {
-                foreach ($config['ifgroups']['ifgroupentry'] as &$group) {
-                    if ($group['ifname'] === $fw_group_name) {
-                        $members = explode(' ', $group['members']);
-                        if (!in_array($logical_if_name, $members)) {
-                            $members[] = $logical_if_name;
-                            $group['members'] = implode(' ', $members);
-                            $log[] = "Appended interface to $fw_group_name.";
+            if (!empty($firewall_group)) {
+                if (isset($config['ifgroups']['ifgroupentry'])) {
+                    foreach ($config['ifgroups']['ifgroupentry'] as &$group) {
+                        if ($group['ifname'] === $firewall_group) {
+                            $members = explode(' ', $group['members']);
+                            if (!in_array($logical_if_name, $members)) {
+                                $members[] = $logical_if_name;
+                                $group['members'] = implode(' ', $members);
+                                $log[] = "Appended interface to $firewall_group.";
+                            }
+                            break;
                         }
-                        break;
                     }
                 }
             }
@@ -173,7 +175,7 @@ class ProvisionController extends ApiControllerBase
 
             // Generate a random UUID for the new Kea Subnet entry
             $uuid = \OPNsense\Core\Config::getInstance()->generateGUID();
-	    $config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'][] = [
+            $config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'][] = [
                 '@attributes' => [ 'uuid' => $uuid ],
                 'subnet' => "$network/$mask",
                 'pools' => "{$net_details['dhcp_start']}-{$net_details['dhcp_end']}",

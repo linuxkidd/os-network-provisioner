@@ -30,6 +30,10 @@
                         <td><input type="text" id="parent_if" class="form-control" placeholder="e.g. vtnet0" value="vtnet0"></td>
                     </tr>
                     <tr>
+                        <td><label for="firewall_group"><b>{{ lang._('Firewall Group') }}</b></label></td>
+                        <td><input type="text" id="firewall_group" class="form-control" placeholder="e.g. Pier_Networks" value="Pier_Networks"></td>
+                    </tr>
+                    <tr>
                         <td colspan="2">
                             <button id="btn_provision" class="btn btn-primary">{{ lang._('Provision Network') }}</button>
                             <div id="provision_status" style="margin-top: 15px; font-weight: bold;"></div>
@@ -49,7 +53,8 @@
                 description: $("#description").val(),
                 network: $("#network").val(),
                 mask: $("#mask").val(),
-                parent_if: $("#parent_if").val()
+                parent_if: $("#parent_if").val(),
+                firewall_group: $("#firewall_group").val()
             };
             
             $("#provision_status").html("<span style='color:blue;'>Provisioning in progress... Please wait.</span>");
