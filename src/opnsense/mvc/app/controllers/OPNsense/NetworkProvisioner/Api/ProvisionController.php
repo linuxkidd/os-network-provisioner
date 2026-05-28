@@ -43,7 +43,12 @@ class ProvisionController extends ApiControllerBase
 
         $log = [];
         require_once("config.inc");
-        global $config;
+        require_once("interfaces.inc");
+        require_once("util.inc");
+
+	global $config;
+	$phalcon_app_config = $config;
+        $config = \OPNsense\Core\Config::getInstance()->toArray();
 
         // ====================================================================
         // PRE-FLIGHT VALIDATION CHECKS
@@ -104,9 +109,6 @@ class ProvisionController extends ApiControllerBase
         // ====================================================================
         // END VALIDATION - PROCEED WITH CONFIGURATION
         // ====================================================================
-
-        require_once("interfaces.inc");
-        require_once("util.inc");
 
         $vlan_iface_name = "{$data['parent_if']}_vlan{$vlan_id}";
 
@@ -180,6 +182,8 @@ class ProvisionController extends ApiControllerBase
             // 5. Write to disk and apply
             write_config("Automated Provisioning: Deployed $description on VLAN $vlan_id");
             $log[] = "Configuration saved to config.xml.";
+
+            $config = $phalcon_app_config;
 
             // Reload systems
             interfaces_vlan_configure();
