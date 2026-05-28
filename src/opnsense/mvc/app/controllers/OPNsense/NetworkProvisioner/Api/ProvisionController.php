@@ -89,7 +89,7 @@ class ProvisionController extends ApiControllerBase
                     if ((string)$group->ifname === $fw_group) {
                         $current_members = (string)$group->members;
                         if (strpos($current_members, $logical_if_name) === false) {
-                            $group->members = trim($current_members . " " . $logical_if_name);
+                            $group->members = trim($current_members . "," . $logical_if_name);
                             $log[] = "Appended interface to Firewall Group '$fw_group'.";
                         }
                         break;
@@ -104,11 +104,15 @@ class ProvisionController extends ApiControllerBase
                 if (!isset($configXML->OPNsense->Kea)) $configXML->OPNsense->addChild('Kea');
                 if (!isset($configXML->OPNsense->Kea->dhcp4)) $configXML->OPNsense->Kea->addChild('dhcp4');
                 $configXML->OPNsense->Kea->dhcp4->addChild('subnets');
+	    }
+
+	    $kea_ifaces = $configXML->OPNsense->Kea->dhcp4->General->interfaces;
+	    if(strpos($kea_ifaces, $logical_if_name) === false) {
+                $configXML->OPNsense->Kea->dhcp4->General->interfaces = trim($kea_ifaces . "," . $logical_if_name);
             }
 
-
             $uuid = $this->genUUID();
-            $new_kea = $configXML->OPNsense->Kea->dhcp4->subnets->addChild('subnet');
+            $new_kea = $configXML->OPNsense->Kea->dhcp4->subnets->addChild('subnet4');
             $new_kea->addAttribute('uuid', $uuid);
             $new_kea->addChild('subnet', "$network/$mask");
             $new_kea->addChild('pools', "$dhcp_start - $dhcp_end");
