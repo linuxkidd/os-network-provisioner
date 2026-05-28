@@ -51,13 +51,13 @@ class ProvisionController extends ApiControllerBase
         $log = [];
 
         require_once("config.inc");
-        require_once("interfaces.inc");
-        require_once("util.inc");
-        require_once("auth.inc");
-
         global $config;
         $phalcon_app_config = $config;
         $config = parse_config();
+
+        require_once("interfaces.inc");
+        require_once("util.inc");
+        require_once("auth.inc");
 
 
         // ====================================================================
