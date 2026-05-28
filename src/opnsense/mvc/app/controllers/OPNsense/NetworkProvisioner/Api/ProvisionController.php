@@ -60,49 +60,43 @@ class ProvisionController extends ApiControllerBase
         $new_net = $get_net_bounds($network, $mask);
 
         // 1. Check Interface Network Overlaps & Duplicate Descriptions
-        if (isset($config['interfaces'])) {
-            foreach ($config['interfaces'] as $if_id => $if_data) {
-                // Check descriptions
-                if (isset($if_data['descr']) && strtolower($if_data['descr']) === strtolower($descr_nospace)) {
-                    return ["status" => "failed", "message" => "An interface with the description '$descr_nospace' already exists."];
-                }
+        foreach ($config['interfaces'] as $if_id => $if_data) {
+            // Check descriptions
+            if (isset($if_data['descr']) && strtolower($if_data['descr']) === strtolower($descr_nospace)) {
+                return ["status" => "failed", "message" => "An interface with the description '$descr_nospace' already exists."];
+            }
 
-                // Check IP Overlaps (only for static IPv4)
-                if (isset($if_data['ipaddr']) && isset($if_data['subnet']) && filter_var($if_data['ipaddr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                    $existing_net = $get_net_bounds($if_data['ipaddr'], $if_data['subnet']);
+            // Check IP Overlaps (only for static IPv4)
+            if (isset($if_data['ipaddr']) && isset($if_data['subnet']) && filter_var($if_data['ipaddr'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                $existing_net = $get_net_bounds($if_data['ipaddr'], $if_data['subnet']);
 
-                    // Overlap math: Max(StartA, StartB) <= Min(EndA, EndB)
-                    if (max($new_net['start'], $existing_net['start']) <= min($new_net['end'], $existing_net['end'])) {
-                        return ["status" => "failed", "message" => "Network Overlap: $network/$mask conflicts with existing interface '{$if_data['descr']}' ({$if_data['ipaddr']}/{$if_data['subnet']})."];
-                    }
+                // Overlap math: Max(StartA, StartB) <= Min(EndA, EndB)
+                if (max($new_net['start'], $existing_net['start']) <= min($new_net['end'], $existing_net['end'])) {
+                    return ["status" => "failed", "message" => "Network Overlap: $network/$mask conflicts with existing interface '{$if_data['descr']}' ({$if_data['ipaddr']}/{$if_data['subnet']})."];
                 }
             }
         }
 
         // 2. Check Kea DHCP Subnet Overlaps
-        if (isset($config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'])) {
-            foreach ($config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'] as $kea_subnet) {
-                // Kea stores as "192.168.1.0/24"
-                $parts = explode('/', $kea_subnet['subnet']);
-                if (count($parts) === 2) {
-                    $existing_kea = $get_net_bounds($parts[0], $parts[1]);
-                    if (max($new_net['start'], $existing_kea['start']) <= min($new_net['end'], $existing_kea['end'])) {
-                        return ["status" => "failed", "message" => "DHCP Overlap: Network conflicts with existing Kea subnet '{$kea_subnet['subnet']}'."];
-                    }
+        foreach ($config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'] as $kea_subnet) {
+            // Kea stores as "192.168.1.0/24"
+            $parts = explode('/', $kea_subnet['subnet']);
+            if (count($parts) === 2) {
+                $existing_kea = $get_net_bounds($parts[0], $parts[1]);
+                if (max($new_net['start'], $existing_kea['start']) <= min($new_net['end'], $existing_kea['end'])) {
+                    return ["status" => "failed", "message" => "DHCP Overlap: Network conflicts with existing Kea subnet '{$kea_subnet['subnet']}'."];
                 }
             }
         }
 
         // 3. Strict VLAN Collision Checking
-        if (isset($config['vlans']['vlan'])) {
-            foreach ($config['vlans']['vlan'] as $v) {
-                if ($v['tag'] == $vlan_id) {
-                    if ($v['if'] !== $parent_if) {
-                        return ["status" => "failed", "message" => "VLAN Collision: Tag $vlan_id is already assigned to a different physical interface ({$v['if']})."];
-                    } else {
-                        // If it's on the same parent, we will allow it to attach, but log a warning
-                        $log[] = "Notice: Reusing existing VLAN $vlan_id on $parent_if.";
-                    }
+        foreach ($config['vlans']['vlan'] as $v) {
+            if ($v['tag'] == $vlan_id) {
+                if ($v['if'] !== $parent_if) {
+                    return ["status" => "failed", "message" => "VLAN Collision: Tag $vlan_id is already assigned to a different physical interface ({$v['if']})."];
+                } else {
+                    // If it's on the same parent, we will allow it to attach, but log a warning
+                    $log[] = "Notice: Reusing existing VLAN $vlan_id on $parent_if.";
                 }
             }
         }
