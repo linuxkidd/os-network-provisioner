@@ -50,14 +50,15 @@ class ProvisionController extends ApiControllerBase
 
         $log = [];
 
-	global $config;
-	$phalcon_app_config = $config;
-        $config = \OPNsense\Core\Config::getInstance()->toArray();
-
         require_once("config.inc");
         require_once("interfaces.inc");
         require_once("util.inc");
-	require_once("auth.inc");
+        require_once("auth.inc");
+
+        global $config;
+        $phalcon_app_config = $config;
+        $config = parse_config();
+
 
         // ====================================================================
         // PRE-FLIGHT VALIDATION CHECKS
@@ -179,8 +180,8 @@ class ProvisionController extends ApiControllerBase
                 $config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'] = [];
             }
 
-	    // Generate a random UUID for the new Kea Subnet entry
-	    $uuid = $this->genUUID();
+            // Generate a random UUID for the new Kea Subnet entry
+            $uuid = $this->genUUID();
             $config['OPNsense']['Kea']['dhcp4']['subnets']['subnet4'][] = [
                 '@attributes' => [ 'uuid' => $uuid ],
                 'subnet' => "$network/$mask",
@@ -194,7 +195,7 @@ class ProvisionController extends ApiControllerBase
                 $_SESSION['Username'] = $this->getUserName() ?: 'API_NetworkProvisioner';
             }
 
-	    write_config("Automated Provisioning: Deployed $description on VLAN $vlan_id");
+            write_config("Automated Provisioning: Deployed $description on VLAN $vlan_id");
             $log[] = "Configuration saved to config.xml.";
 
             $config = $phalcon_app_config;
