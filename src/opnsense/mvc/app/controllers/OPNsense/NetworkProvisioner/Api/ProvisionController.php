@@ -20,7 +20,7 @@ class ProvisionController extends ApiControllerBase
                 $network_int = ip2long($ip) & $mask_int;
                 $broadcast_int = $network_int | ~$mask_int;
                 return ['start' => $network_int, 'end' => $broadcast_int];
-    };
+    }
 
     public function runAction()
     {
@@ -49,7 +49,7 @@ class ProvisionController extends ApiControllerBase
 
         $log = [];
 
-	// Check interfaces for overlap
+        // Check interfaces for overlap
         $new_net = $this->get_net_bounds($network, $mask);
         if (isset($configXML->interfaces)) {
             foreach ($configXML->interfaces->children() as $if_id => $if_data) {
@@ -70,10 +70,10 @@ class ProvisionController extends ApiControllerBase
                     }
                 }
             }
-	}
+        }
 
         // Check for Kea DHCP Range overlaps
-	if (isset($configXML->OPNsense->Kea->dhcp4->subnets->subnet4)) {
+        if (isset($configXML->OPNsense->Kea->dhcp4->subnets->subnet4)) {
             foreach ($configXML->OPNsense->Kea->dhcp4->subnets->subnet4 as $kea_subnet) {
                 $subnet_str = (string)$kea_subnet->subnet; // Format: "192.168.1.0/24"
                 $parts = explode('/', $subnet_str);
@@ -86,7 +86,7 @@ class ProvisionController extends ApiControllerBase
                     }
                 }
             }
-	}
+        }
 
         // Check for overlapping VLANs
         if (isset($configXML->vlans->vlan)) {
