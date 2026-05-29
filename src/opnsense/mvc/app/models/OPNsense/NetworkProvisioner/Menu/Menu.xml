@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu>
     <Interfaces>
-        <NetworkProvisioner visible="name" title="Network Provisioner" url="/ui/networkprovisioner" order="90"/>
+        <NetworkProvisioner order="90" VisibleName="Network Provisioner" url="/ui/networkprovisioner" cssClass="fa fa-chart-diagram fa-fw<"/>
     </Interfaces>
 </menu>
