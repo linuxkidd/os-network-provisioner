@@ -198,7 +198,7 @@ class ProvisionController extends ApiControllerBase
             $backend->configdRun("kea restart");
             $log[] = "Kea DHCP daemon restarted.";
 
-            return ["status" => "success", "log" => $log];
+            return ["status" => "success", "log" => $log, "message" => "Provisioning Complete."];
 
         } catch (\Exception $e) {
             return ["status" => "failed", "message" => $e->getMessage()];
